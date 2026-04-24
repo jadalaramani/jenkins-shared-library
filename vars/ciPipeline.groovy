@@ -4,8 +4,7 @@ def call(Map config) {
         agent any
 
         environment {
-            IMAGE_NAME = config.imageName
-            TAG = "${BUILD_NUMBER}"
+            TAG = "${BUILD_NUMBER}"   
         }
 
         stages {
@@ -18,19 +17,28 @@ def call(Map config) {
 
             stage('Build Docker Image') {
                 steps {
-                    dockerBuild(IMAGE_NAME, TAG)
+                    script {
+                        def image = config.imageName
+                        sh "docker build -t ${image}:${TAG} ."
+                    }
                 }
             }
 
             stage('Push Image') {
                 steps {
-                    dockerPush(IMAGE_NAME, TAG, config.dockerCred)
+                    script {
+                        def image = config.imageName
+                        dockerPush(image, TAG, config.dockerCred)
+                    }
                 }
             }
 
             stage('Deploy') {
                 steps {
-                    echo "Deploying ${IMAGE_NAME}:${TAG}"
+                    script {
+                        def image = config.imageName
+                        echo "Deploying ${image}:${TAG}"
+                    }
                 }
             }
         }
